@@ -70,7 +70,7 @@ This makes it easy to construct local proxy classes that represent remote object
         {
             try
             {
-                return await _rpcClient.InvokeAsync<string>("GreetMethod", "Menno", 1000, token);
+                return await _rpcClient.InvokeAsync<string>("GreetMethod", name, 1000, token);
             }
             catch (JsonRpcException e)
             {
