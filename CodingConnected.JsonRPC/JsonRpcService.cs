@@ -57,7 +57,7 @@ namespace CodingConnected.JsonRPC
             try
             {
                 var result = HandleRpcInternal(JsonConvert.DeserializeObject<JsonRpcRequest>(request));
-                return JsonConvert.SerializeObject(result);
+                return result == null ? null : JsonConvert.SerializeObject(result);
             }
             catch (JsonReaderException)
             {
