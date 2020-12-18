@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 namespace CodingConnected.JsonRPC
 {
@@ -12,7 +13,7 @@ namespace CodingConnected.JsonRPC
     {
         #region Fields
 
-        private static readonly object _locker = new object();
+        private static readonly object Locker = new object();
         private static volatile IJsonRpcProcedureBinder _default;
 
         #endregion // Fields
@@ -27,7 +28,7 @@ namespace CodingConnected.JsonRPC
             get
             {
                 if (_default != null) return _default;
-                lock (_locker)
+                lock (Locker)
                 {
                     if (_default == null)
                     {
@@ -49,9 +50,9 @@ namespace CodingConnected.JsonRPC
         /// <param name="instance">Object whose methods (if tagged with [JsonRpcMethod] will be
         /// bound to the service instance</param>
         /// <returns>A new instance of JsonRpcService</returns>
-        public JsonRpcService GetInstanceService(object instance)
+        public JsonRpcService GetInstanceService(object instance, ILogger logger)
         {
-            var service = new JsonRpcService();
+            var service = new JsonRpcService(logger);
             
             var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(m => m.GetCustomAttributes(typeof(JsonRpcMethodAttribute), false).Length > 0);

@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
 
 namespace CodingConnected.JsonRPC
 {
@@ -20,12 +20,13 @@ namespace CodingConnected.JsonRPC
     {
         #region Fields
 
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private bool _isJson20;
 
         #endregion // Fields
 
         #region Properties
+        
+        private ILogger Logger { get; }
 
         /// <summary>
         /// List of bound local methods that can be called remotely
@@ -116,10 +117,9 @@ namespace CodingConnected.JsonRPC
 
             var parameters = new object[prmcount];
 
-#warning Add handling of named parameters!
+            // TODO Add handling of named parameters!
 
-            var args = request.Params as JArray;
-            if (args != null)
+            if (request.Params is JArray args)
             {
                 var reqprmscol = (ICollection) request.Params;
                 var reqprmscount = 0;
@@ -171,20 +171,19 @@ namespace CodingConnected.JsonRPC
                 var result = rpcproc.Method.DynamicInvoke(parameters);
                 if (result == null)
                 {
-                    _logger.Warn("DynamicInvoke on method {0} returned null. This will cause a JSON-RPC error.", request.Method);
+                    Logger?.Log(LogLevel.Warning, "DynamicInvoke on method {method} returned null. This will cause a JSON-RPC error.", request.Method);
                 }
                 return new JsonRpcResponse() { JsonRpc = "2.0", Result = result, Error = null, Id = request.Id };
             }
             catch (Exception e)
             {
                 // We really dont care about the TargetInvocationException, just pass on the inner exception
-                var error = e as JsonRpcException;
-                if (error != null)
+                if (e is JsonRpcException error)
                 {
                     return new JsonRpcResponse() { Error = error };
                 }
-                var exception = e.InnerException as JsonRpcException;
-                if (exception != null)
+
+                if (e.InnerException is JsonRpcException exception)
                 {
                     return new JsonRpcResponse() { Error = exception };
                 }
@@ -199,10 +198,11 @@ namespace CodingConnected.JsonRPC
 
         #region Constructor
 
-        public JsonRpcService()
+        public JsonRpcService(ILogger logger)
         {
-            _isJson20 = true;
+            Logger = logger;
             Procedures = new List<JsonRpcProcedure>();
+            _isJson20 = true;
         }
 
         #endregion // Constructor

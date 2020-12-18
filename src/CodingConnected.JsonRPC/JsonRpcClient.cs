@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
 
 namespace CodingConnected.JsonRPC
 {
@@ -39,9 +39,7 @@ namespace CodingConnected.JsonRPC
         #endregion // Private classes
 
         #region Fields
-
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
+        
         private readonly Regex _jsonRpcResultRegex = new Regex(@"['""]result['""]", RegexOptions.Compiled);
         private readonly Regex _jsonRpcErrorRegex = new Regex(@"['""]error['""]", RegexOptions.Compiled);
         private readonly List<Tuple<ulong, JsonRpcResponse, AutoResetEvent>> _isWaitingForReply = new List<Tuple<ulong, JsonRpcResponse, AutoResetEvent>>();
@@ -50,6 +48,8 @@ namespace CodingConnected.JsonRPC
         #endregion // Fields
 
         #region Properties
+        
+        private ILogger Logger { get; }
 
         /// <summary>
         /// An instance of a class that implements ITcpClient, which is used to send data to the
@@ -97,7 +97,7 @@ namespace CodingConnected.JsonRPC
 
             if (methodname == null)
             {
-                _logger.Warn("InvokeAsync was call with a null value for the methodname. Returning without taking any action.");
+                Logger?.Log(LogLevel.Warning, "InvokeAsync was call with a null value for the methodname. Returning without taking any action.");
                 return null;
             }
 
@@ -176,7 +176,7 @@ namespace CodingConnected.JsonRPC
             try
             {
                 var response = JsonConvert.DeserializeObject<JsonRpcResponse>(e, new JsonSerializerSettings());
-                if (response.Id != null)
+                if (response?.Id != null)
                 {
                     var waiter = _isWaitingForReply.FirstOrDefault(x => x.Item1 == (ulong)((long)response.Id));
                     if (waiter == null) return;
@@ -184,9 +184,9 @@ namespace CodingConnected.JsonRPC
                     _isWaitingForReply.Add(new Tuple<ulong, JsonRpcResponse, AutoResetEvent>(waiter.Item1, response, waiter.Item3));
                     waiter.Item3.Set();
                 }
-                else if (response.Error != null)
+                else if (response?.Error != null)
                 {
-                    _logger.Error(response.Error, "Error with JSON-RPC call, without ID.");
+                    Logger?.Log(LogLevel.Error, response.Error, "Error with JSON-RPC call, without ID.");
                     throw response.Error;
                 }
             }
@@ -250,9 +250,10 @@ namespace CodingConnected.JsonRPC
         {
         }
 
-        public JsonRpcClient(ITcpClient tcpClient)
+        public JsonRpcClient(ITcpClient tcpClient, ILogger logger)
         {
             TcpClient = tcpClient;
+            Logger = logger;
         }
 
         #endregion // Constructor
