@@ -21,10 +21,9 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    public static int Main () => Execute<Build>(x => x.Push);
 
     [Solution] readonly Solution Solution;
-    [GitRepository] readonly GitRepository GitRepository;
     [GitVersion] readonly GitVersion GitVersion;
     [Parameter] string NugetApiUrl = "https://api.nuget.org/v3/index.json";
     [Parameter] string NugetApiKey;
@@ -66,7 +65,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             DotNetPack(s => s
-                .SetProject(Solution.GetProject("CodingConnected.Topology"))
+                .SetProject(Solution.GetProject("CodingConnected.JsonRPC"))
                 .SetConfiguration("Release")
                 .EnableNoBuild()
                 .EnableNoRestore()
