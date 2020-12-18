@@ -1,6 +1,6 @@
 ﻿# CodingConnected.JsonRPC
 
-[![NuGet version (CodingConnected.JsonRPC)](https://img.shields.io/nuget/v/SoftCircuits.Silk.svg?style=flat-square)](https://www.nuget.org/packages/CodingConnected.JsonRPC/)
+[![NuGet version (CodingConnected.JsonRPC)](https://img.shields.io/nuget/v/CodingConnected.JsonRPC.svg?style=flat-square)](https://www.nuget.org/packages/CodingConnected.JsonRPC/)
 
 ## Overview
 
